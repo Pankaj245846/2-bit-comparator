@@ -1,29 +1,47 @@
-`timescale     10 ps/ 10 ps  
- // Verilog testbench code for 2-bit comparator   
- module tb_comparator;  
- reg [1:0] A, B;  
- wire A_less_B, A_equal_B, A_greater_B;  
- integer i;  
- // device under test  
- comparator dut(A,B,A_less_B, A_equal_B, A_greater_B);  
- initial begin  
-      for (i=0;i<4;i=i+1)  
-      begin   
-           A = i;  
-           B = i + 1;  
-           #20;  
-      end   
-      for (i=0;i<4;i=i+1)  
-      begin   
-           A = i;  
-           B = i;  
-           #20;  
-      end   
-      for (i=0;i<4;i=i+1)  
-      begin   
-           A = i+1;  
-           B = i;  
-           #20;  
-      end   
- end   
- endmodule   
+`timescale 1ns/1ps
+
+module tb_sequence_detector;
+
+    reg clk;
+    reg rst;
+    reg din;
+    wire detected;
+
+    sequence_detector uut(
+        .clk(clk),
+        .rst(rst),
+        .din(din),
+        .detected(detected)
+    );
+
+    always #5 clk = ~clk;
+
+    initial
+    begin
+        clk = 0;
+        rst = 1;
+        din = 0;
+
+        #15;
+        rst = 0;
+
+        // Input Stream: 1101011011
+
+        din = 1; #10;
+        din = 1; #10;
+        din = 0; #10;
+        din = 1; #10;
+        din = 0; #10;
+        din = 1; #10;
+        din = 1; #10;   // Detects 1011
+
+        din = 0; #10;
+        din = 1; #10;
+        din = 1; #10;   // Detects again
+
+        #20;
+
+        $finish;
+    end
+
+endmodule

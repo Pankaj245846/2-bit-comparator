@@ -1,18 +1,69 @@
-// Verilog code for 2-bit comparator   
- module comparator(input [1:0] A,B, output A_less_B, A_equal_B, A_greater_B);  
- wire tmp1,tmp2,tmp3,tmp4,tmp5, tmp6, tmp7, tmp8;  
- // A = B output   
- xnor u1(tmp1,A[1],B[1]);  
- xnor u2(tmp2,A[0],B[0]);  
- and u3(A_equal_B,tmp1,tmp2);  
- // A less than B output   
- assign tmp3 = (~A[0])& (~A[1])& B[0];  
- assign tmp4 = (~A[1])& B[1];  
- assign tmp5 = (~A[0])& B[1]& B[0];  
- assign A_less_B = tmp3 | tmp4 | tmp5;  
- // A greater than B output   
- assign tmp6 = (~B[0])& (~B[1])& A[0];  
- assign tmp7 = (~B[1])& A[1];  
- assign tmp8 = (~B[0])& A[1]& A[0];  
- assign A_greater_B = tmp6 | tmp7 | tmp8;  
- endmodule   
+module sequence_detector(
+    input clk,
+    input rst,
+    input din,
+    output reg detected
+);
+
+    reg [2:0] state;
+
+    parameter S0 = 3'b000;
+    parameter S1 = 3'b001;
+    parameter S2 = 3'b010;
+    parameter S3 = 3'b011;
+    parameter S4 = 3'b100;
+
+    always @(posedge clk or posedge rst)
+    begin
+        if(rst)
+            state <= S0;
+        else
+        begin
+            case(state)
+
+                S0:
+                    if(din)
+                        state <= S1;
+                    else
+                        state <= S0;
+
+                S1:
+                    if(din)
+                        state <= S1;
+                    else
+                        state <= S2;
+
+                S2:
+                    if(din)
+                        state <= S3;
+                    else
+                        state <= S0;
+
+                S3:
+                    if(din)
+                        state <= S4;
+                    else
+                        state <= S2;
+
+                S4:
+                    if(din)
+                        state <= S1;
+                    else
+                        state <= S2;
+
+                default:
+                    state <= S0;
+
+            endcase
+        end
+    end
+
+    always @(*)
+    begin
+        if(state == S4)
+            detected = 1'b1;
+        else
+            detected = 1'b0;
+    end
+
+endmodule
